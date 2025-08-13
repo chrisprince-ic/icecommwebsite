@@ -9,7 +9,11 @@ const ProductCard = memo(function ProductCard({ product }) {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
 
-  const addToCart = () => {
+  const addToCart = (e) => {
+    // Prevent navigation to product page
+    e.preventDefault();
+    e.stopPropagation();
+    
     setIsAddingToCart(true);
     
     // Get existing cart from localStorage
@@ -43,7 +47,11 @@ const ProductCard = memo(function ProductCard({ product }) {
     }, 1000);
   };
 
-  const toggleWishlist = () => {
+  const toggleWishlist = (e) => {
+    // Prevent navigation to product page
+    e.preventDefault();
+    e.stopPropagation();
+    
     // Get current user from auth
     const user = auth.currentUser;
     if (!user) {
@@ -76,6 +84,9 @@ const ProductCard = memo(function ProductCard({ product }) {
       localStorage.setItem(wishlistKey, JSON.stringify(existingWishlist));
       setIsInWishlist(true);
     }
+    
+    // Trigger wishlist update event
+    window.dispatchEvent(new CustomEvent('wishlistUpdated'));
   };
 
   // Check if product is in wishlist on mount
@@ -90,64 +101,63 @@ const ProductCard = memo(function ProductCard({ product }) {
 
   return (
     <div className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">
-      <Link href={`/product/${product.id}`}>
-        <div className="relative aspect-square overflow-hidden bg-gray-50">
+      <div className="relative aspect-square overflow-hidden bg-gray-50">
+        <Link href={`/product/${product.id}`}>
           <Image
             src={product.imageUrl}
             alt={product.name}
             fill
             className="object-cover group-hover:scale-110 transition-transform duration-700"
           />
-          {product.featured && (
-            <div className="absolute top-4 left-4 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-              Featured
-            </div>
-          )}
-          {/* Wishlist Button */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              toggleWishlist();
-            }}
-            className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-red-500 hover:text-white transition-all duration-300 opacity-0 group-hover:opacity-100"
-          >
-            <svg className="w-5 h-5" fill={isInWishlist ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-            </svg>
-          </button>
-          {product.stock < 10 && product.stock > 0 && (
-            <div className="absolute top-4 right-4 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-              Only {product.stock} left
-            </div>
-          )}
-          {product.stock === 0 && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-              <span className="text-white font-bold text-lg bg-gray-500 px-4 py-2 rounded-full">Out of Stock</span>
-            </div>
-          )}
-          {/* Quick add button overlay */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <button
-              onClick={addToCart}
-              disabled={product.stock === 0 || isAddingToCart}
-              className={`px-6 py-3 rounded-full font-bold text-white transition-all duration-300 transform scale-90 group-hover:scale-100 ${
-                product.stock === 0
-                  ? 'bg-gray-500 cursor-not-allowed'
-                  : isAddingToCart
-                  ? 'bg-green-500 shadow-lg'
-                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl'
-              }`}
-            >
-              {product.stock === 0
-                ? 'Out of Stock'
-                : isAddingToCart
-                ? '✓ Added!'
-                : 'Quick Add'}
-            </button>
+        </Link>
+        
+        {product.featured && (
+          <div className="absolute top-4 left-4 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+            Featured
           </div>
+        )}
+        
+        {/* Wishlist Button - Moved outside Link */}
+        <button
+          onClick={toggleWishlist}
+          className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-red-500 hover:text-white transition-all duration-300 opacity-0 group-hover:opacity-100 z-10"
+        >
+          <svg className="w-5 h-5" fill={isInWishlist ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+          </svg>
+        </button>
+        
+        {product.stock < 10 && product.stock > 0 && (
+          <div className="absolute top-4 right-4 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+            Only {product.stock} left
+          </div>
+        )}
+        {product.stock === 0 && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+            <span className="text-white font-bold text-lg bg-gray-500 px-4 py-2 rounded-full">Out of Stock</span>
+          </div>
+        )}
+        {/* Quick add button overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+          <button
+            onClick={addToCart}
+            disabled={product.stock === 0 || isAddingToCart}
+            className={`px-6 py-3 rounded-full font-bold text-white transition-all duration-300 transform scale-90 group-hover:scale-100 ${
+              product.stock === 0
+                ? 'bg-gray-500 cursor-not-allowed'
+                : isAddingToCart
+                ? 'bg-green-500 shadow-lg'
+                : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl'
+            }`}
+          >
+            {product.stock === 0
+              ? 'Out of Stock'
+              : isAddingToCart
+              ? '✓ Added!'
+              : 'Quick Add'}
+          </button>
         </div>
-      </Link>
+      </div>
       
       <div className="p-6">
         <div className="flex items-center justify-between mb-3">

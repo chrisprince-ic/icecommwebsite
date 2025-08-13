@@ -11,16 +11,47 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
-  const [notifications, setNotifications] = useState(3); // Mock notifications
+  const [notifications, setNotifications] = useState(0);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
   const router = useRouter();
 
+  // Function to get wishlist count
+  const getWishlistCount = () => {
+    if (typeof window !== 'undefined' && user) {
+      const wishlistKey = `wishlist_${user.uid}`;
+      const wishlist = JSON.parse(localStorage.getItem(wishlistKey) || '[]');
+      return wishlist.length;
+    }
+    return 0;
+  };
+
+  // Function to get notifications count
+  const getNotificationsCount = () => {
+    if (typeof window !== 'undefined' && user) {
+      const notificationsKey = `notifications_${user.uid}`;
+      const notifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
+      return notifications.filter(notification => !notification.read).length;
+    }
+    return 0;
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      
+      // Update counts when user changes
+      if (typeof window !== 'undefined') {
+        if (user) {
+          setWishlistCount(getWishlistCount());
+          setNotifications(getNotificationsCount());
+        } else {
+          setWishlistCount(0);
+          setNotifications(0);
+        }
+      }
     });
 
     // Get cart count from localStorage (client-side only)
@@ -28,25 +59,40 @@ export default function Header() {
       const cart = JSON.parse(localStorage.getItem('cart') || '[]');
       setCartCount(cart.length);
 
-      // Mock wishlist count
-      setWishlistCount(5);
-
       // Listen for cart updates
       const handleCartUpdate = () => {
         const cart = JSON.parse(localStorage.getItem('cart') || '[]');
         setCartCount(cart.length);
       };
 
+      // Listen for wishlist updates
+      const handleWishlistUpdate = () => {
+        if (user) {
+          setWishlistCount(getWishlistCount());
+        }
+      };
+
+      // Listen for notifications updates
+      const handleNotificationsUpdate = () => {
+        if (user) {
+          setNotifications(getNotificationsCount());
+        }
+      };
+
       window.addEventListener('cartUpdated', handleCartUpdate);
+      window.addEventListener('wishlistUpdated', handleWishlistUpdate);
+      window.addEventListener('notificationsUpdated', handleNotificationsUpdate);
 
       return () => {
         unsubscribe();
         window.removeEventListener('cartUpdated', handleCartUpdate);
+        window.removeEventListener('wishlistUpdated', handleWishlistUpdate);
+        window.removeEventListener('notificationsUpdated', handleNotificationsUpdate);
       };
     }
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -125,7 +171,7 @@ export default function Header() {
                       <svg className="w-4 h-4 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
-                                             <span className="text-gray-700">&quot;{searchQuery}&quot; in Electronics</span>
+                      <span className="text-gray-700">&quot;{searchQuery}&quot; in Electronics</span>
                     </div>
                   </div>
                   <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer">
@@ -133,7 +179,7 @@ export default function Header() {
                       <svg className="w-4 h-4 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
-                                             <span className="text-gray-700">&quot;{searchQuery}&quot; in Clothing</span>
+                      <span className="text-gray-700">&quot;{searchQuery}&quot; in Clothing</span>
                     </div>
                   </div>
                 </div>
@@ -150,6 +196,14 @@ export default function Header() {
               Categories
             </Link>
             
+            {/* Admin Dashboard Link */}
+            <Link href="/admin" className="text-gray-700 hover:text-purple-600 font-medium transition-colors duration-200 flex items-center">
+              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Admin
+            </Link>
+            
             {/* Wishlist */}
             <Link href="/wishlist" className="relative text-gray-700 hover:text-red-500 transition-colors duration-200">
               <div className="relative">
@@ -164,19 +218,19 @@ export default function Header() {
               </div>
             </Link>
 
-                         {/* Notifications */}
-             <Link href="/notifications" className="relative text-gray-700 hover:text-blue-600 transition-colors duration-200">
-               <div className="relative">
-                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                 </svg>
-                 {notifications > 0 && (
-                   <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                     {notifications}
-                   </span>
-                 )}
-               </div>
-             </Link>
+            {/* Notifications */}
+            <Link href="/notifications" className="relative text-gray-700 hover:text-blue-600 transition-colors duration-200">
+              <div className="relative">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                </svg>
+                {notifications > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {notifications}
+                  </span>
+                )}
+              </div>
+            </Link>
             
             {/* Cart */}
             <Link href="/cart" className="relative text-gray-700 hover:text-blue-600 transition-colors duration-200">
