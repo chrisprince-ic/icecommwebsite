@@ -19,24 +19,24 @@ export default function Header() {
   const router = useRouter();
 
   // Function to get wishlist count
-  const getWishlistCount = () => {
+  const getWishlistCount = useCallback(() => {
     if (typeof window !== 'undefined' && user) {
       const wishlistKey = `wishlist_${user.uid}`;
       const wishlist = JSON.parse(localStorage.getItem(wishlistKey) || '[]');
       return wishlist.length;
     }
     return 0;
-  };
+  }, [user]);
 
   // Function to get notifications count
-  const getNotificationsCount = () => {
+  const getNotificationsCount = useCallback(() => {
     if (typeof window !== 'undefined' && user) {
       const notificationsKey = `notifications_${user.uid}`;
       const notifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
       return notifications.filter(notification => !notification.read).length;
     }
     return 0;
-  };
+  }, [user]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -92,7 +92,7 @@ export default function Header() {
     }
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, getWishlistCount, getNotificationsCount]);
 
   // Close user menu when clicking outside
   useEffect(() => {

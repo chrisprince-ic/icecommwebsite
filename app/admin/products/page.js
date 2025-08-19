@@ -5,7 +5,7 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase
 import { db } from '../../firebase/config';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import FallbackImage from '../components/FallbackImage';
+import FallbackImage from '../../components/FallbackImage';
 import { auth } from '../../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -182,7 +182,7 @@ export default function AdminProducts() {
         <div className="text-center">
           <div className="text-6xl mb-4">🚫</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600 mb-4">You don't have permission to access the admin dashboard.</p>
+          <p className="text-gray-600 mb-4">You don&apos;t have permission to access the admin dashboard.</p>
           <Link href="/" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
             Go Home
           </Link>

@@ -6,7 +6,7 @@ import { getUserOrders } from '../../firebase/orderService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import FallbackImage from '../../../components/FallbackImage';
+import FallbackImage from '../../components/FallbackImage';
 
 export default function Orders() {
   const [user, setUser] = useState(null);

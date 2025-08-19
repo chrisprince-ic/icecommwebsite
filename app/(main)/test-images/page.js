@@ -1,6 +1,7 @@
 'use client';
 
-import FallbackImage from '../../../components/FallbackImage';
+import FallbackImage from '../../components/FallbackImage';
+import Link from 'next/link';
 
 export default function TestImages() {
   return (
@@ -103,7 +104,7 @@ export default function TestImages() {
             <h3 className="text-lg font-semibold text-blue-900 mb-2">Test Instructions</h3>
             <div className="space-y-2 text-sm text-blue-800">
               <p>• <strong>Working Image:</strong> Should display the Unsplash image normally</p>
-              <p>• <strong>Broken Image:</strong> Should show the fallback with "Image unavailable" message</p>
+              <p>• <strong>Broken Image:</strong> Should show the fallback with &quot;Image unavailable&quot; message</p>
               <p>• <strong>Empty URL:</strong> Should show the fallback immediately</p>
               <p>• <strong>Fixed Size:</strong> Test both working and broken images with fixed dimensions</p>
               <p>• <strong>Product Card Style:</strong> Shows how it looks in actual product cards</p>
@@ -111,12 +112,12 @@ export default function TestImages() {
           </div>
 
           <div className="mt-6">
-            <a
+            <Link
               href="/"
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Back to Homepage
-            </a>
+            </Link>
           </div>
         </div>
       </div>

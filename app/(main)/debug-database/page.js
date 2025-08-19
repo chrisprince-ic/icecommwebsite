@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import Link from 'next/link';
 
 export default function DebugDatabase() {
   const [products, setProducts] = useState([]);
@@ -146,18 +147,18 @@ export default function DebugDatabase() {
 
           {/* Quick Actions */}
           <div className="mt-6 flex gap-4">
-            <a
+            <Link
               href="/add-sample-products"
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Add Sample Products
-            </a>
-            <a
+            </Link>
+            <Link
               href="/"
               className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
             >
               Go to Homepage
-            </a>
+            </Link>
           </div>
         </div>
       </div>

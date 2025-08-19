@@ -223,7 +223,7 @@ export default function Notifications() {
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🔔</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No notifications yet</h3>
-              <p className="text-gray-600 mb-6">We'll notify you about important updates, offers, and more.</p>
+              <p className="text-gray-600 mb-6">We&apos;ll notify you about important updates, offers, and more.</p>
               <Link
                 href="/categories"
                 className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300"
