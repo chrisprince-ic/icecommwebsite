@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+
+export const dynamic = 'force-dynamic';
 
 const sampleProducts = [
   {
@@ -96,6 +96,8 @@ export default function AddSampleProducts() {
     setMessage('');
     
     try {
+      const { collection, addDoc } = await import('firebase/firestore');
+      const { db } = await import('../../firebase/config');
       for (const product of sampleProducts) {
         await addDoc(collection(db, 'products'), {
           ...product,
