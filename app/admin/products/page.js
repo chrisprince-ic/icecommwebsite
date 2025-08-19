@@ -4,13 +4,18 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import Link from 'next/link';
+import FallbackImage from '../components/FallbackImage';
+import { auth } from '../../firebase/config';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [user, setUser] = useState(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const router = useRouter();
 
   // Form states for adding/editing products
@@ -25,8 +30,27 @@ export default function AdminProducts() {
   });
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      
+      // Check if user is authorized (specific email)
+      if (user && user.email === 'christianikirezi@gmail.com') {
+        setIsAuthorized(true);
+        fetchProducts();
+      } else {
+        setIsAuthorized(false);
+        if (user) {
+          // User is logged in but not authorized
+          router.push('/');
+        } else {
+          // User is not logged in
+          router.push('/login');
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   const fetchProducts = async () => {
     try {
@@ -142,10 +166,27 @@ export default function AdminProducts() {
     return 'bg-red-100 text-red-800';
   };
 
-  if (loading) {
+  // Show loading while checking authentication
+  if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Show unauthorized message if user is not the admin
+  if (!isAuthorized) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🚫</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600 mb-4">You don't have permission to access the admin dashboard.</p>
+          <Link href="/" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+            Go Home
+          </Link>
+        </div>
       </div>
     );
   }
@@ -291,15 +332,12 @@ export default function AdminProducts() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0 mr-3">
-                          <Image
-                            src={product.imageUrl || '/placeholder-image.jpg'}
+                          <FallbackImage
+                            src={product.imageUrl || '/placeholder-product.svg'}
                             alt={product.name}
                             width={40}
                             height={40}
                             className="w-full h-full object-cover rounded-lg"
-                            onError={(e) => {
-                              e.target.src = '/placeholder-image.jpg';
-                            }}
                           />
                         </div>
                         <div>

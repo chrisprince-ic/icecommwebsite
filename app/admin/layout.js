@@ -8,12 +8,20 @@ import { signOut, onAuthStateChanged } from 'firebase/auth';
 
 export default function AdminLayout({ children }) {
   const [user, setUser] = useState(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      
+      // Check if user is authorized (specific email)
+      if (user && user.email === 'christianikirezi@gmail.com') {
+        setIsAuthorized(true);
+      } else {
+        setIsAuthorized(false);
+      }
     });
 
     return () => unsubscribe();
@@ -35,6 +43,31 @@ export default function AdminLayout({ children }) {
     { name: 'Analytics', href: '/admin/analytics', icon: '📈' },
     { name: 'Settings', href: '/admin/settings', icon: '⚙️' },
   ];
+
+  // Show loading while checking authentication
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Show unauthorized message if user is not the admin
+  if (!isAuthorized) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🚫</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600 mb-4">You don't have permission to access the admin dashboard.</p>
+          <Link href="/" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+            Go Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

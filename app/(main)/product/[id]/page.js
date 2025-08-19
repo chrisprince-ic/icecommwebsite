@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../../firebase/config';
 import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
+import FallbackImage from '../../../components/FallbackImage';
 
 export default function ProductDetail() {
   const [product, setProduct] = useState(null);
@@ -136,7 +136,7 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Product Image */}
           <div className="relative h-96 lg:h-[500px] bg-white rounded-lg shadow-md overflow-hidden">
-            <Image
+            <FallbackImage
               src={product.imageUrl}
               alt={product.name}
               fill

@@ -1,6 +1,8 @@
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import SmoothScroll from "./components/SmoothScroll";
+import PerformanceMonitor from "./components/PerformanceMonitor";
 
 export const metadata = {
   title: "IceComm - Your Trusted Online Marketplace",
@@ -11,7 +13,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col">
-        {children}
+        <PerformanceMonitor />
+        <SmoothScroll>
+          {children}
+        </SmoothScroll>
       </body>
     </html>
   );

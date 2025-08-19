@@ -2,14 +2,40 @@
 
 import { useState, useEffect } from 'react';
 import { getAllOrders, updateOrderStatus } from '../../firebase/orderService';
+import { auth } from '../../firebase/config';
+import { onAuthStateChanged } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      
+      // Check if user is authorized (specific email)
+      if (user && user.email === 'christianikirezi@gmail.com') {
+        setIsAuthorized(true);
+        fetchOrders();
+      } else {
+        setIsAuthorized(false);
+        if (user) {
+          // User is logged in but not authorized
+          router.push('/');
+        } else {
+          // User is not logged in
+          router.push('/login');
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   const fetchOrders = async () => {
     try {
@@ -71,10 +97,27 @@ export default function AdminOrders() {
     });
   };
 
-  if (loading) {
+  // Show loading while checking authentication
+  if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Show unauthorized message if user is not the admin
+  if (!isAuthorized) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🚫</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600 mb-4">You don't have permission to access the admin dashboard.</p>
+          <Link href="/" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+            Go Home
+          </Link>
+        </div>
       </div>
     );
   }

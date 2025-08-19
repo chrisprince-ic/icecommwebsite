@@ -6,6 +6,7 @@ import { getUserOrders } from '../../firebase/orderService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import FallbackImage from '../../../components/FallbackImage';
 
 export default function Orders() {
   const [user, setUser] = useState(null);
@@ -152,13 +153,12 @@ export default function Orders() {
                     {order.items && order.items.map((item, index) => (
                       <div key={index} className="flex items-center space-x-4">
                         <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0">
-                          <img
-                            src={item.imageUrl || '/placeholder-image.jpg'}
+                          <FallbackImage
+                            src={item.imageUrl || '/placeholder-product.svg'}
                             alt={item.name}
+                            width={64}
+                            height={64}
                             className="w-full h-full object-cover rounded-lg"
-                            onError={(e) => {
-                              e.target.src = '/placeholder-image.jpg';
-                            }}
                           />
                         </div>
                         <div className="flex-1">

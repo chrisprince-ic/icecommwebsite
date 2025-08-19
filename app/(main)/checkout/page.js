@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { auth } from '../../firebase/config';
 import { saveOrderToFirebase } from '../../firebase/orderService';
 import Link from 'next/link';
+import FallbackImage from '../../components/FallbackImage';
 
 export default function Checkout() {
   const [cartItems, setCartItems] = useState([]);
@@ -391,7 +392,15 @@ export default function Checkout() {
               {cartItems.map((item) => (
                 <div key={item.id} className="flex items-center justify-between py-2 border-b border-gray-200">
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gray-200 rounded-md"></div>
+                    <div className="w-12 h-12 bg-gray-200 rounded-md overflow-hidden">
+                      <FallbackImage
+                        src={item.imageUrl}
+                        alt={item.name}
+                        width={48}
+                        height={48}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-900">{item.name}</h4>
                       <p className="text-sm text-gray-500">Qty: {item.quantity}</p>

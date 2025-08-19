@@ -6,7 +6,9 @@ import { db } from '../firebase/config';
 import { getAllOrders } from '../firebase/orderService';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import FallbackImage from '../components/FallbackImage';
+import { auth } from '../firebase/config';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -15,6 +17,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [user, setUser] = useState(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const router = useRouter();
 
   // Form states for adding/editing products
@@ -29,8 +33,27 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      
+      // Check if user is authorized (specific email)
+      if (user && user.email === 'christianikirezi@gmail.com') {
+        setIsAuthorized(true);
+        fetchData();
+      } else {
+        setIsAuthorized(false);
+        if (user) {
+          // User is logged in but not authorized
+          router.push('/');
+        } else {
+          // User is not logged in
+          router.push('/login');
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   const fetchData = async () => {
     try {
@@ -178,10 +201,27 @@ export default function AdminDashboard() {
   const totalProducts = products.length;
   const lowStockProducts = products.filter(p => p.stock < 10).length;
 
-  if (loading) {
+  // Show loading while checking authentication
+  if (loading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Show unauthorized message if user is not the admin
+  if (!isAuthorized) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🚫</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600 mb-4">You don't have permission to access the admin dashboard.</p>
+          <Link href="/" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+            Go Home
+          </Link>
+        </div>
       </div>
     );
   }
@@ -311,22 +351,13 @@ export default function AdminDashboard() {
                         <div key={product.id} className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
                           <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
-                              {product.imageUrl ? (
-                                <Image
-                                  src={product.imageUrl}
-                                  alt={product.name}
-                                  width={40}
-                                  height={40}
-                                  className="object-cover"
-                                  onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextSibling.style.display = 'flex';
-                                  }}
-                                />
-                              ) : null}
-                              <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-xs" style={{ display: product.imageUrl ? 'none' : 'flex' }}>
-                                📦
-                              </div>
+                              <FallbackImage
+                                src={product.imageUrl || '/placeholder-product.svg'}
+                                alt={product.name}
+                                width={40}
+                                height={40}
+                                className="object-cover"
+                              />
                             </div>
                             <div>
                               <p className="font-medium text-gray-900">{product.name}</p>
@@ -491,22 +522,13 @@ export default function AdminDashboard() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="w-10 h-10 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
-                                {product.imageUrl ? (
-                                  <Image
-                                    src={product.imageUrl}
-                                    alt={product.name}
-                                    width={40}
-                                    height={40}
-                                    className="object-cover"
-                                    onError={(e) => {
-                                      e.target.style.display = 'none';
-                                      e.target.nextSibling.style.display = 'flex';
-                                    }}
-                                  />
-                                ) : null}
-                                <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-xs" style={{ display: product.imageUrl ? 'none' : 'flex' }}>
-                                  📦
-                                </div>
+                                <FallbackImage
+                                  src={product.imageUrl || '/placeholder-product.svg'}
+                                  alt={product.name}
+                                  width={40}
+                                  height={40}
+                                  className="object-cover"
+                                />
                               </div>
                               <div className="ml-4">
                                 <div className="text-sm font-medium text-gray-900">{product.name}</div>

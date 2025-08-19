@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
 import ProductCard from '../components/ProductCard';
 import Link from 'next/link';
-import Image from 'next/image';
+import FallbackImage from '../components/FallbackImage';
+import LoadingSpinner from '../components/LoadingSpinner';
+import StaggeredGrid from '../components/StaggeredGrid';
 
 // Cache for products to avoid refetching
 const productCache = {
@@ -290,7 +292,7 @@ export default function Home() {
                     >
                       <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                         <div className="relative aspect-square mb-4 overflow-hidden rounded-xl">
-                          <Image
+                          <FallbackImage
                             src={product.imageUrl}
                             alt={product.name}
                             fill
@@ -318,14 +320,15 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-12">Shop by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {categories.map((category) => (
+            {categories.map((category, index) => (
               <Link
                 key={category.name}
                 href={category.href}
-                className="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow"
+                className="group bg-white rounded-lg shadow-md p-6 text-center hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 border border-transparent hover:border-blue-200"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="text-4xl mb-4">{category.icon}</div>
-                <h3 className="font-semibold text-gray-800">{category.name}</h3>
+                <div className="text-4xl mb-4 transition-transform duration-500 group-hover:scale-110">{category.icon}</div>
+                <h3 className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors duration-300">{category.name}</h3>
               </Link>
             ))}
           </div>
@@ -345,11 +348,11 @@ export default function Home() {
             </Link>
           </div>
           {featuredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StaggeredGrid staggerDelay={150}>
               {featuredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
-            </div>
+            </StaggeredGrid>
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No featured products available</p>
@@ -371,11 +374,11 @@ export default function Home() {
             </Link>
           </div>
           {newArrivals.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StaggeredGrid staggerDelay={150}>
               {newArrivals.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
-            </div>
+            </StaggeredGrid>
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No new arrivals available</p>

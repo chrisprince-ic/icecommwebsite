@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, memo, useEffect } from 'react';
-import Image from 'next/image';
+import { useState, memo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { auth } from '../firebase/config';
+import FallbackImage from './FallbackImage';
 
 const ProductCard = memo(function ProductCard({ product }) {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
 
-  const addToCart = (e) => {
+  const addToCart = useCallback((e) => {
     // Prevent navigation to product page
     e.preventDefault();
     e.stopPropagation();
@@ -45,9 +45,9 @@ const ProductCard = memo(function ProductCard({ product }) {
     setTimeout(() => {
       setIsAddingToCart(false);
     }, 1000);
-  };
+  }, [product.id, product.name, product.price, product.imageUrl]);
 
-  const toggleWishlist = (e) => {
+  const toggleWishlist = useCallback((e) => {
     // Prevent navigation to product page
     e.preventDefault();
     e.stopPropagation();
@@ -87,7 +87,7 @@ const ProductCard = memo(function ProductCard({ product }) {
     
     // Trigger wishlist update event
     window.dispatchEvent(new CustomEvent('wishlistUpdated'));
-  };
+  }, [product.id, product.name, product.price, product.imageUrl, product.category, product.description, product.stock, product.featured, isInWishlist]);
 
   // Check if product is in wishlist on mount
   useEffect(() => {
@@ -100,14 +100,14 @@ const ProductCard = memo(function ProductCard({ product }) {
   }, [product.id]);
 
   return (
-    <div className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">
+    <div className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-3 border border-gray-100 hover:border-blue-200">
       <div className="relative aspect-square overflow-hidden bg-gray-50">
         <Link href={`/product/${product.id}`}>
-          <Image
+          <FallbackImage
             src={product.imageUrl}
             alt={product.name}
             fill
-            className="object-cover group-hover:scale-110 transition-transform duration-700"
+            className="object-cover group-hover:scale-110 transition-transform duration-1000 ease-out"
           />
         </Link>
         
@@ -120,7 +120,7 @@ const ProductCard = memo(function ProductCard({ product }) {
         {/* Wishlist Button - Moved outside Link */}
         <button
           onClick={toggleWishlist}
-          className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-red-500 hover:text-white transition-all duration-300 opacity-0 group-hover:opacity-100 z-10"
+          className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-red-500 hover:text-white transition-all duration-500 opacity-0 group-hover:opacity-100 z-10 hover:scale-110 transform"
         >
           <svg className="w-5 h-5" fill={isInWishlist ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
@@ -138,11 +138,11 @@ const ProductCard = memo(function ProductCard({ product }) {
           </div>
         )}
         {/* Quick add button overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-500 flex items-center justify-center opacity-0 group-hover:opacity-100">
           <button
             onClick={addToCart}
             disabled={product.stock === 0 || isAddingToCart}
-            className={`px-6 py-3 rounded-full font-bold text-white transition-all duration-300 transform scale-90 group-hover:scale-100 ${
+            className={`px-6 py-3 rounded-full font-bold text-white transition-all duration-500 transform scale-90 group-hover:scale-100 hover:scale-105 ${
               product.stock === 0
                 ? 'bg-gray-500 cursor-not-allowed'
                 : isAddingToCart
@@ -186,7 +186,7 @@ const ProductCard = memo(function ProductCard({ product }) {
           <button
             onClick={addToCart}
             disabled={product.stock === 0 || isAddingToCart}
-            className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 ${
+            className={`px-6 py-3 rounded-xl font-bold transition-all duration-500 ${
               product.stock === 0
                 ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 : isAddingToCart

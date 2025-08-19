@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import FallbackImage from '../../components/FallbackImage';
 
 export default function Cart() {
   const [cartItems, setCartItems] = useState([]);
@@ -130,7 +130,7 @@ export default function Cart() {
                   {cartItems.map((item) => (
                     <div key={item.id} className="flex items-center space-x-6 p-6 bg-gray-50 rounded-xl border border-gray-100">
                       <div className="relative h-24 w-24 flex-shrink-0">
-                        <Image
+                        <FallbackImage
                           src={item.imageUrl}
                           alt={item.name}
                           fill
